@@ -78,7 +78,6 @@ export default function App() {
     try {
       const r = await fetch(`${API}/api/${ent.ruta}`);
       setItems(await r.json());
-      setError("");
     } catch {
       setError("No se pudo cargar la lista.");
     }
@@ -103,6 +102,7 @@ export default function App() {
   useEffect(() => {
     setForm({});
     setEditId(null);
+    setError("");
     cargar();
   }, [ent]);
 
@@ -140,6 +140,7 @@ export default function App() {
     setEditId(null);
     setError("");
     cargar();
+    cargarOpciones();
   };
 
   const editar = (item) => {
