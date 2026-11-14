@@ -25,3 +25,14 @@ Paciente, Medico, Especialidad, Consultorio, Cita, HistoriaClinica, Diagnostico,
 ## Tecnologías
 
 .NET 8, Entity Framework Core, SQL Server (LocalDB), React, Vite.
+
+## Conceptos de N capas aplicados
+
+- **Separación en capas**: Domain, Application, Infrastructure y API, con dependencias en una sola dirección.
+- **Interfaces**: `IRepository<T>` (Domain) e `ICrudService<TDto>` con una interfaz por entidad (Application).
+- **Patrón Repositorio**: `Repository<T>` en Infrastructure.
+- **DTOs y mapeos**: la API nunca expone las entidades directamente.
+- **Capa de servicios**: la lógica de negocio vive en Application.
+- **Inyección de dependencias**: todo se registra en `Program.cs`.
+- **Entity Framework Core con migraciones**: 11 tablas en SQL Server.
+- **Frontend desacoplado**: React consume la API REST.
