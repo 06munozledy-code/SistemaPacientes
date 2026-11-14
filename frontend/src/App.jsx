@@ -17,6 +17,28 @@ const ENTIDADES = [
   { ruta: "RecetaDetalles", schema: "RecetaDetalleDto" },
 ];
 
+// Campo de relación -> endpoint de donde salen las opciones
+const FK = {
+  EspecialidadId: "Especialidades",
+  PacienteId: "Pacientes",
+  MedicoId: "Medicos",
+  ConsultorioId: "Consultorios",
+  HistoriaClinicaId: "HistoriasClinicas",
+  DiagnosticoId: "Diagnosticos",
+  TratamientoId: "Tratamientos",
+  RecetaId: "Recetas",
+  MedicamentoId: "Medicamentos",
+};
+
+function etiqueta(it) {
+  if (it.nombre) return `${it.id} - ${it.nombre}${it.apellido ? " " + it.apellido : ""}`;
+  if (it.numero) return `${it.id} - Consultorio ${it.numero}`;
+  if (it.descripcion) return `${it.id} - ${String(it.descripcion).slice(0, 40)}`;
+  if (it.antecedentes) return `${it.id} - ${String(it.antecedentes).slice(0, 40)}`;
+  if (it.fecha) return `${it.id} - ${String(it.fecha).slice(0, 10)}`;
+  return `#${it.id}`;
+}
+
 function camposDe(schema) {
   const campos = [];
   for (const [nombre, prop] of Object.entries(schema.properties || {})) {
@@ -38,6 +60,7 @@ export default function App() {
   const [schemas, setSchemas] = useState(null);
   const [ent, setEnt] = useState(ENTIDADES[0]);
   const [items, setItems] = useState([]);
+  const [opciones, setOpciones] = useState({});
   const [form, setForm] = useState({});
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState("");
@@ -61,11 +84,31 @@ export default function App() {
     }
   };
 
+  // Carga las opciones de las listas desplegables (relaciones)
+  const cargarOpciones = async () => {
+    const nuevas = {};
+    for (const c of campos) {
+      const ruta = FK[c.nombre];
+      if (!ruta) continue;
+      try {
+        const r = await fetch(`${API}/api/${ruta}`);
+        nuevas[c.nombre] = await r.json();
+      } catch {
+        nuevas[c.nombre] = [];
+      }
+    }
+    setOpciones(nuevas);
+  };
+
   useEffect(() => {
     setForm({});
     setEditId(null);
     cargar();
   }, [ent]);
+
+  useEffect(() => {
+    cargarOpciones();
+  }, [ent, schemas]);
 
   const cambiar = (c, valor) => setForm({ ...form, [c.nombre]: valor });
 
@@ -148,7 +191,24 @@ export default function App() {
             {campos.map((c) => (
               <label key={c.nombre}>
                 {c.nombre}
-                {tipoInput(c) === "checkbox" ? (
+                {FK[c.nombre] ? (
+                  <select
+                    required
+                    value={form[c.nombre] ?? ""}
+                    onChange={(e) => cambiar(c, e.target.value)}
+                  >
+                    <option value="">
+                      {(opciones[c.nombre] || []).length === 0
+                        ? `Primero crea un registro en ${FK[c.nombre]}`
+                        : "Seleccione..."}
+                    </option>
+                    {(opciones[c.nombre] || []).map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {etiqueta(o)}
+                      </option>
+                    ))}
+                  </select>
+                ) : tipoInput(c) === "checkbox" ? (
                   <input
                     type="checkbox"
                     checked={!!form[c.nombre]}
