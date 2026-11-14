@@ -5,11 +5,11 @@ namespace SistemaPacientes.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public abstract class BaseController<T> : ControllerBase where T : class
+    public abstract class BaseController<TDto> : ControllerBase where TDto : class
     {
-        protected readonly IService<T> _service;
+        protected readonly ICrudService<TDto> _service;
 
-        protected BaseController(IService<T> service)
+        protected BaseController(ICrudService<TDto> service)
         {
             _service = service;
         }
@@ -25,12 +25,12 @@ namespace SistemaPacientes.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] T entity)
-            => Ok(await _service.CreateAsync(entity));
+        public async Task<IActionResult> Create([FromBody] TDto dto)
+            => Ok(await _service.CreateAsync(dto));
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] T entity)
-            => await _service.UpdateAsync(id, entity) ? NoContent() : NotFound();
+        public async Task<IActionResult> Update(int id, [FromBody] TDto dto)
+            => await _service.UpdateAsync(id, dto) ? NoContent() : NotFound();
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)

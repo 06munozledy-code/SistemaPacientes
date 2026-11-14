@@ -4,33 +4,24 @@ import "./App.css";
 const API = "https://localhost:7130";
 
 const ENTIDADES = [
-  { ruta: "Pacientes", schema: "Paciente" },
-  { ruta: "Medicos", schema: "Medico" },
-  { ruta: "Especialidades", schema: "Especialidad" },
-  { ruta: "Consultorios", schema: "Consultorio" },
-  { ruta: "Citas", schema: "Cita" },
-  { ruta: "HistoriasClinicas", schema: "HistoriaClinica" },
-  { ruta: "Diagnosticos", schema: "Diagnostico" },
-  { ruta: "Tratamientos", schema: "Tratamiento" },
-  { ruta: "Medicamentos", schema: "Medicamento" },
-  { ruta: "Recetas", schema: "Receta" },
-  { ruta: "RecetaDetalles", schema: "RecetaDetalle" },
+  { ruta: "Pacientes", schema: "PacienteDto" },
+  { ruta: "Medicos", schema: "MedicoDto" },
+  { ruta: "Especialidades", schema: "EspecialidadDto" },
+  { ruta: "Consultorios", schema: "ConsultorioDto" },
+  { ruta: "Citas", schema: "CitaDto" },
+  { ruta: "HistoriasClinicas", schema: "HistoriaClinicaDto" },
+  { ruta: "Diagnosticos", schema: "DiagnosticoDto" },
+  { ruta: "Tratamientos", schema: "TratamientoDto" },
+  { ruta: "Medicamentos", schema: "MedicamentoDto" },
+  { ruta: "Recetas", schema: "RecetaDto" },
+  { ruta: "RecetaDetalles", schema: "RecetaDetalleDto" },
 ];
 
-const nombreRef = (ref) => ref.split("/").pop();
-
-function camposDe(schema, schemas) {
+function camposDe(schema) {
   const campos = [];
   for (const [nombre, prop] of Object.entries(schema.properties || {})) {
     if (nombre.toLowerCase() === "id") continue;
-    if (prop.type === "array") continue;
-    let p = prop.allOf ? prop.allOf[0] : prop;
-    if (p.$ref) {
-      const r = schemas[nombreRef(p.$ref)];
-      if (r && r.enum) p = { type: "integer" };
-      else continue;
-    }
-    campos.push({ nombre, tipo: p.type, formato: p.format });
+    campos.push({ nombre, tipo: prop.type, formato: prop.format });
   }
   return campos;
 }
@@ -58,7 +49,7 @@ export default function App() {
       .catch(() => setError("No se pudo conectar con la API. Revisa el puerto y que la API esté corriendo."));
   }, []);
 
-  const campos = schemas && schemas[ent.schema] ? camposDe(schemas[ent.schema], schemas) : [];
+  const campos = schemas && schemas[ent.schema] ? camposDe(schemas[ent.schema]) : [];
 
   const cargar = async () => {
     try {
@@ -87,8 +78,10 @@ export default function App() {
       else if (v === undefined || v === "" || v === null) {
         if (c.tipo === "string" && !c.formato) body[c.nombre] = "";
       } else if (c.tipo === "integer" || c.tipo === "number") body[c.nombre] = Number(v);
+      else if (c.formato === "date-time" && String(v).length === 16) body[c.nombre] = v + ":00";
       else body[c.nombre] = v;
     });
+    if (editId) body.id = editId;
 
     const url = editId ? `${API}/api/${ent.ruta}/${editId}` : `${API}/api/${ent.ruta}`;
     const r = await fetch(url, {
@@ -165,6 +158,8 @@ export default function App() {
                   <input
                     type={tipoInput(c)}
                     step={c.tipo === "number" ? "any" : undefined}
+                    min={tipoInput(c) === "datetime-local" ? "1900-01-01T00:00" : undefined}
+                    max={tipoInput(c) === "datetime-local" ? "2100-12-31T23:59" : undefined}
                     value={form[c.nombre] ?? ""}
                     onChange={(e) => cambiar(c, e.target.value)}
                   />
