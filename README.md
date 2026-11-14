@@ -5,7 +5,7 @@ API REST en .NET 8 con arquitectura en capas y Entity Framework Core, consumida 
 ## Arquitectura
 
 - **Domain**: entidades e interfaces (`IRepository<T>`).
-- **Application**: interfaces y servicios (`IService<T>`, `Service<T>`).
+- **Application**: DTOs, mapeos, interfaces (`ICrudService<TDto>` y una por entidad) y servicios.
 - **Infrastructure**: `AppDbContext`, repositorios y migraciones.
 - **API**: controladores CRUD.
 - **frontend**: aplicación React que consume la API.
