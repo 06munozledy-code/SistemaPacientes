@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./App.css";
 
 const API = "https://localhost:7130";
 
@@ -127,91 +128,107 @@ export default function App() {
   };
 
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", padding: 20, maxWidth: 1100, margin: "0 auto" }}>
-      <h1>Sistema de Pacientes</h1>
+    <div>
+      <div className="header">
+        <h1>🩺 Sistema de Pacientes</h1>
+        <p>Gestión de pacientes, médicos, citas, tratamientos y recetas</p>
+      </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+      <div className="tabs">
         {ENTIDADES.map((x) => (
           <button
             key={x.ruta}
+            className={"tab" + (x.ruta === ent.ruta ? " activo" : "")}
             onClick={() => setEnt(x)}
-            style={{
-              padding: "6px 12px",
-              cursor: "pointer",
-              border: "1px solid #7c3aed",
-              borderRadius: 6,
-              background: x.ruta === ent.ruta ? "#7c3aed" : "#fff",
-              color: x.ruta === ent.ruta ? "#fff" : "#5b21b6",
-            }}
           >
             {x.ruta}
           </button>
         ))}
       </div>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {error && <div className="error">{error}</div>}
 
-      <h2>{editId ? `Editar ${ent.ruta} #${editId}` : `Nuevo registro en ${ent.ruta}`}</h2>
-      <form onSubmit={guardar} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
-        {campos.map((c) => (
-          <label key={c.nombre} style={{ display: "flex", flexDirection: "column", fontSize: 13 }}>
-            {c.nombre}
-            {tipoInput(c) === "checkbox" ? (
-              <input type="checkbox" checked={!!form[c.nombre]} onChange={(e) => cambiar(c, e.target.checked)} />
-            ) : (
-              <input
-                type={tipoInput(c)}
-                step={c.tipo === "number" ? "any" : undefined}
-                value={form[c.nombre] ?? ""}
-                onChange={(e) => cambiar(c, e.target.value)}
-                style={{ padding: 6 }}
-              />
-            )}
-          </label>
-        ))}
-        <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8 }}>
-          <button type="submit" style={{ padding: "8px 16px", cursor: "pointer" }}>
-            {editId ? "Actualizar" : "Guardar"}
-          </button>
-          {editId && (
-            <button type="button" onClick={() => { setForm({}); setEditId(null); }} style={{ padding: "8px 16px", cursor: "pointer" }}>
-              Cancelar
-            </button>
-          )}
-        </div>
-      </form>
-
-      <h2>Listado ({items.length})</h2>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 14 }}>
-          <thead>
-            <tr>
-              <th style={th}>id</th>
-              {campos.map((c) => <th key={c.nombre} style={th}>{c.nombre}</th>)}
-              <th style={th}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((it) => (
-              <tr key={it.id}>
-                <td style={td}>{it.id}</td>
-                {campos.map((c) => (
-                  <td key={c.nombre} style={td}>
-                    {c.tipo === "boolean" ? (it[c.nombre] ? "Sí" : "No") : String(it[c.nombre] ?? "")}
-                  </td>
-                ))}
-                <td style={td}>
-                  <button onClick={() => editar(it)} style={{ cursor: "pointer" }}>Editar</button>{" "}
-                  <button onClick={() => eliminar(it.id)} style={{ cursor: "pointer" }}>Eliminar</button>
-                </td>
-              </tr>
+      <div className="card">
+        <h2>{editId ? `Editar ${ent.ruta} #${editId}` : `Nuevo registro en ${ent.ruta}`}</h2>
+        <form onSubmit={guardar}>
+          <div className="form-grid">
+            {campos.map((c) => (
+              <label key={c.nombre}>
+                {c.nombre}
+                {tipoInput(c) === "checkbox" ? (
+                  <input
+                    type="checkbox"
+                    checked={!!form[c.nombre]}
+                    onChange={(e) => cambiar(c, e.target.checked)}
+                  />
+                ) : (
+                  <input
+                    type={tipoInput(c)}
+                    step={c.tipo === "number" ? "any" : undefined}
+                    value={form[c.nombre] ?? ""}
+                    onChange={(e) => cambiar(c, e.target.value)}
+                  />
+                )}
+              </label>
             ))}
-          </tbody>
-        </table>
+          </div>
+          <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
+            <button type="submit" className="btn">
+              {editId ? "Actualizar" : "Guardar"}
+            </button>
+            {editId && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setForm({});
+                  setEditId(null);
+                }}
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      <div className="card">
+        <h2>Listado ({items.length})</h2>
+        <div className="tabla-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>id</th>
+                {campos.map((c) => (
+                  <th key={c.nombre}>{c.nombre}</th>
+                ))}
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it) => (
+                <tr key={it.id}>
+                  <td>{it.id}</td>
+                  {campos.map((c) => (
+                    <td key={c.nombre}>
+                      {c.tipo === "boolean" ? (it[c.nombre] ? "Sí" : "No") : String(it[c.nombre] ?? "")}
+                    </td>
+                  ))}
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => editar(it)}>
+                      Editar
+                    </button>{" "}
+                    <button className="btn btn-danger btn-sm" onClick={() => eliminar(it.id)}>
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {items.length === 0 && <div className="vacio">Todavía no hay registros.</div>}
+        </div>
       </div>
     </div>
   );
 }
-
-const th = { border: "1px solid #ddd6fe", padding: 8, background: "#ede9fe", textAlign: "left", color: "#4c1d95" };
-const td = { border: "1px solid #ddd6fe", padding: 8 };
